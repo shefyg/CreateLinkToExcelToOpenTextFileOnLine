@@ -1,6 +1,7 @@
 import tkinter as tk
 from tkinter import filedialog, messagebox
 import os
+from shutil import copy2  # For copying the file
 import pyperclip  # Install with `pip install pyperclip`
 
 def browse_file():
@@ -9,16 +10,27 @@ def browse_file():
         file_path_input.delete(0, tk.END)
         file_path_input.insert(0, filepath)
 
+def select_working_dir():
+    directory = filedialog.askdirectory()
+    if directory:
+        working_dir_input.delete(0, tk.END)
+        working_dir_input.insert(0, directory)
+
 def create_bat_file():
     filepath = file_path_input.get()
     line_number = line_number_input.get()
+    working_dir = working_dir_input.get()
 
-    if not filepath or not line_number:
-        messagebox.showwarning("Missing Input", "Please provide both file path and line number.")
+    if not filepath or not line_number or not working_dir:
+        messagebox.showwarning("Missing Input", "Please provide file path, line number, and working directory.")
         return
 
     if not os.path.exists(filepath):
         messagebox.showerror("Invalid File", "The selected file does not exist.")
+        return
+
+    if not os.path.isdir(working_dir):
+        messagebox.showerror("Invalid Directory", "The selected working directory does not exist.")
         return
 
     try:
@@ -27,11 +39,15 @@ def create_bat_file():
         messagebox.showerror("Invalid Input", "Line number must be an integer.")
         return
 
-    # Create the .bat file
+    # Copy file to the working directory
     file_name = os.path.basename(filepath)
+    copied_file_path = os.path.join(working_dir, file_name)
+    copy2(filepath, copied_file_path)
+
+    # Create the .bat file in the working directory
     file_base_name, _ = os.path.splitext(file_name)
-    bat_filename = os.path.join(os.path.dirname(filepath), f"{file_base_name}_line{line_number}.bat")
-    bat_content = f'@echo off\nstart notepad++ -n{line_number} "{filepath}"'
+    bat_filename = os.path.join(working_dir, f"{file_base_name}_line{line_number}.bat")
+    bat_content = f'@echo off\nstart notepad++ -n{line_number} "{copied_file_path}"'
 
     with open(bat_filename, "w") as bat_file:
         bat_file.write(bat_content)
@@ -44,12 +60,12 @@ def create_bat_file():
 
     # Copy hyperlink to clipboard
     pyperclip.copy(hyperlink)
-    messagebox.showinfo("Success", f"Batch file created:\n{bat_filename}\nHyperlink copied to clipboard.")
+    messagebox.showinfo("Success", f"Batch file created in working directory:\n{bat_filename}\nHyperlink copied to clipboard.")
 
 # Set up the GUI
 root = tk.Tk()
 root.title("Batch File Generator")
-root.geometry("500x300")
+root.geometry("500x400")
 root.resizable(False, False)
 
 # File path input
@@ -57,6 +73,12 @@ tk.Label(root, text="File Path:").pack(anchor="w", padx=10, pady=5)
 file_path_input = tk.Entry(root, width=50)
 file_path_input.pack(anchor="w", padx=10)
 tk.Button(root, text="Browse", command=browse_file).pack(anchor="w", padx=10, pady=5)
+
+# Working directory input
+tk.Label(root, text="Working Directory:").pack(anchor="w", padx=10, pady=5)
+working_dir_input = tk.Entry(root, width=50)
+working_dir_input.pack(anchor="w", padx=10)
+tk.Button(root, text="Select Directory", command=select_working_dir).pack(anchor="w", padx=10, pady=5)
 
 # Line number input
 tk.Label(root, text="Line Number:").pack(anchor="w", padx=10, pady=5)
