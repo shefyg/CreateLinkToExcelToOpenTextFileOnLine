@@ -42,7 +42,12 @@ def create_bat_file():
     # Copy file to the working directory
     file_name = os.path.basename(filepath)
     copied_file_path = os.path.join(working_dir, file_name)
-    copy2(filepath, copied_file_path)
+    try:
+        copy2(filepath, copied_file_path)
+    except PermissionError:
+        messagebox.showerror("Permission Error", "The file is being used by another process. Please close the file and try again.")
+        return
+
 
     # Create the .bat file in the working directory
     file_base_name, _ = os.path.splitext(file_name)
