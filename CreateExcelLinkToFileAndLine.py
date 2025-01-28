@@ -70,7 +70,7 @@ def create_bat_file():
 
 # Set up the GUI
 root = tk.Tk()
-root.title("Batch File Generator")
+root.title("Excel link to log line generator")
 root.geometry("500x450")
 root.resizable(False, False)
 
