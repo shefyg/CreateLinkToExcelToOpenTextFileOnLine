@@ -47,14 +47,15 @@ def create_bat_file():
     # Create the .bat file in the working directory
     file_base_name, _ = os.path.splitext(file_name)
     bat_filename = os.path.join(working_dir, f"{file_base_name}_line{line_number}.bat")
-    bat_content = f'@echo off\nstart notepad++ -n{line_number} "{copied_file_path}"'
+    bat_content = f'@echo off\nstart notepad++ -n{line_number} "{file_name}"'  # Use relative file name
 
     with open(bat_filename, "w") as bat_file:
         bat_file.write(bat_content)
 
-    # Create hyperlink for Excel
+    # Create a relative hyperlink for Excel
+    relative_bat_path = os.path.relpath(bat_filename, working_dir)
     hyperlink_text = f"Open {file_name} at Line {line_number}"
-    hyperlink = f'=HYPERLINK("{bat_filename}", "{hyperlink_text}")'
+    hyperlink = f'=HYPERLINK("{relative_bat_path}", "{hyperlink_text}")'
     hyperlink_input.delete(0, tk.END)
     hyperlink_input.insert(0, hyperlink)
 
@@ -65,7 +66,7 @@ def create_bat_file():
 # Set up the GUI
 root = tk.Tk()
 root.title("Batch File Generator")
-root.geometry("500x400")
+root.geometry("500x450")
 root.resizable(False, False)
 
 # File path input
@@ -74,8 +75,8 @@ file_path_input = tk.Entry(root, width=50)
 file_path_input.pack(anchor="w", padx=10)
 tk.Button(root, text="Browse", command=browse_file).pack(anchor="w", padx=10, pady=5)
 
-# Working directory input
-tk.Label(root, text="Working Directory:").pack(anchor="w", padx=10, pady=5)
+# Working directory input with note
+tk.Label(root, text="Working Directory (Should be the folder where the Excel file is):").pack(anchor="w", padx=10, pady=5)
 working_dir_input = tk.Entry(root, width=50)
 working_dir_input.pack(anchor="w", padx=10)
 tk.Button(root, text="Select Directory", command=select_working_dir).pack(anchor="w", padx=10, pady=5)
